@@ -4,12 +4,19 @@ import cors from 'cors';
 import { PORT } from './config/env.js';
 import connectToDatabase from './database/mongodb.js';
 
+import authRouter from './routes/auth.routes.js';
+import errorMiddleware from './middlewares/error.middleware.js';
+
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use('/uploads', express.static('uploads'));
 
-app.get('/', (req, res) => {
+app.use('/api/auth', authRouter);
+app.use(errorMiddleware);
+
+app.get('/api', (req, res) => {
   res.send('Welcome to the blog backend!');
 });
 
