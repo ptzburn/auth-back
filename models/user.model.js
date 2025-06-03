@@ -37,6 +37,26 @@ const userSchema = new mongoose.Schema(
     avatarUrl: {
       type: String,
       default: ''
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    verifyOtp: {
+      type: String,
+      default: ''
+    },
+    verifyOtpExpiresAt: {
+      type: Number,
+      default: 0
+    },
+    resetOtp: {
+      type: String,
+      default: ''
+    },
+    resetOtpExpiresAt: {
+      type: Number,
+      default: 0
     }
   },
   { timestamps: true }
