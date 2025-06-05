@@ -9,6 +9,7 @@ import { EMAIL, JWT_EXPIRES_IN, JWT_SECRET } from '../config/env.js';
 import transporter from '../config/nodemailer.js';
 import { passwordResetTemplate } from '../utils/password-reset-template.js';
 import { welcomeTemplate } from '../utils/welcome-template.js';
+import { emailVerificationTemplate } from '../utils/email-verification-template.js';
 
 export const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -28,9 +29,7 @@ export const signUp = async (req, res, next) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      const error = new Error('User already exists');
-      error.statusCode = 409;
-      throw error;
+      return res.status(409).json({ success: false, message: 'User already exists' });
     }
 
     // Hash password
@@ -88,24 +87,20 @@ export const signIn = async (req, res, next) => {
     );
 
     if (!user) {
-      const error = new Error('User not found');
-      error.statusCode = 404;
-      throw error;
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.hashedPassword);
 
     if (!isPasswordValid) {
-      const error = new Error('Invalid password');
-      error.statusCode = 401;
-      throw error;
+      return res.status(400).json({ success: false, message: 'Invalid password' });
     }
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
     res.status(200).json({
       success: true,
-      message: 'User signed in successfully',
+      message: 'Signed in successfully',
       data: {
         token,
         user
@@ -144,12 +139,8 @@ export const sendVerifyOtp = async (req, res, next) => {
 
     const user = await User.findById(_id);
 
-    console.log('user', user);
-
     if (user.isVerified) {
-      const error = new Error('Account already verified');
-      error.statusCode = 400;
-      throw error;
+      return res.status(400).json({ success: false, message: 'Email is already verified' });
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -162,8 +153,8 @@ export const sendVerifyOtp = async (req, res, next) => {
     const mailOptions = {
       from: EMAIL,
       to: user.email,
-      subject: 'Account verification',
-      text: `Hi ${user.firstName} ${user.lastName}! Use this one-time password within 24 hours to verify your account: ${otp}`
+      subject: 'Email verification',
+      html: emailVerificationTemplate.replace('{{otp}}', otp).replace('{{email}}', user.email)
     };
 
     await transporter.sendMail(mailOptions, (error, info) => {
@@ -191,12 +182,10 @@ export const verifyEmail = async (req, res, next) => {
     const user = await User.findById(_id);
 
     if (!user) {
-      console.error('User not found');
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     if (user.verifyOtp !== otp || user.verifyOtp === '') {
-      console.error('Invalid verification code');
       return res.status(400).json({ success: false, message: 'Invalid verification code' });
     }
 
@@ -234,6 +223,10 @@ export const sendResetOtp = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
 
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
     const otp = String(Math.floor(100000 + Math.random() * 900000));
 
     user.resetOtp = otp;
@@ -255,6 +248,22 @@ export const sendResetOtp = async (req, res, next) => {
     });
 
     res.status(200).json({ success: true, message: 'Password reset email sent successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (otp !== user.resetOtp || user.resetOtp === '') {
+      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Correct OTP' });
   } catch (error) {
     next(error);
   }

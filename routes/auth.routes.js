@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   isAuthenticated,
   resetPassword,
+  checkOtp,
   sendResetOtp,
   sendVerifyOtp,
   signIn,
@@ -21,6 +22,7 @@ authRouter.post('/send-verification', authorize, sendVerifyOtp);
 authRouter.post('/verify-email', authorize, verifyEmail);
 authRouter.post('/is-auth', authorize, isAuthenticated);
 authRouter.post('/send-reset', sendResetOtp);
+authRouter.post('/check-otp', checkOtp);
 authRouter.post('/reset-password', resetPassword);
 
 export default authRouter;
