@@ -18,7 +18,7 @@ authRouter.post('/sign-up', signUp);
 authRouter.post('/sign-in', signIn);
 authRouter.post('/upload', upload.single('file'), uploadAvatar);
 authRouter.post('/send-verification', authorize, sendVerifyOtp);
-authRouter.post('/verify-account', authorize, verifyEmail);
+authRouter.post('/verify-email', authorize, verifyEmail);
 authRouter.post('/is-auth', authorize, isAuthenticated);
 authRouter.post('/send-reset', sendResetOtp);
 authRouter.post('/reset-password', resetPassword);

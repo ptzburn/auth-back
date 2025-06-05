@@ -6,6 +6,7 @@ import connectToDatabase from './database/mongodb.js';
 
 import authRouter from './routes/auth.routes.js';
 import errorMiddleware from './middlewares/error.middleware.js';
+import userRouter from './routes/user.routes.js';
 
 const app = express();
 
@@ -14,10 +15,11 @@ app.use(cors());
 app.use('/uploads', express.static('uploads'));
 
 app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
 app.use(errorMiddleware);
 
 app.get('/api', (req, res) => {
-  res.send('Welcome to the blog backend!');
+  res.send('Welcome to the app backend!');
 });
 
 app.listen(PORT, async () => {

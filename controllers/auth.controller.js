@@ -7,6 +7,8 @@ import Upload from '../models/upload.model.js';
 
 import { EMAIL, JWT_EXPIRES_IN, JWT_SECRET } from '../config/env.js';
 import transporter from '../config/nodemailer.js';
+import { passwordResetTemplate } from '../utils/password-reset-template.js';
+import { welcomeTemplate } from '../utils/welcome-template.js';
 
 export const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -50,8 +52,7 @@ export const signUp = async (req, res, next) => {
       from: EMAIL,
       to: email,
       subject: 'Welcome to my blog!',
-      text: `Welcome ${firstName} ${lastName}!
-      Your account has been created successfully using this email: ${email}`
+      html: welcomeTemplate
     };
 
     await transporter.sendMail(mailOptions, (error, info) => {
@@ -244,7 +245,7 @@ export const sendResetOtp = async (req, res, next) => {
       from: EMAIL,
       to: user.email,
       subject: 'Password reset',
-      text: `Your OTP for resetting your password: ${otp}. Use this one-time password within 15 minutes to reset your password.`
+      html: passwordResetTemplate.replace('{{otp}}', otp).replace('{{email}}', user.email)
     };
 
     await transporter.sendMail(mailOptions, (error, info) => {
