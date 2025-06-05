@@ -4,6 +4,6 @@ import { getUser } from '../controllers/user.controller.js';
 
 const userRouter = Router();
 
-userRouter.get('/api/user/data', authorize, getUser);
+userRouter.get('/data', authorize, getUser);
 
 export default userRouter;
